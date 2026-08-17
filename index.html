@@ -136,7 +136,7 @@ interface ModelStore {
   updateAssumption: (key: keyof ValuationAssumptions, value: number) => void;
 }
 
-export const useModelStore = create((set) => ({
+export const useModelStore = create<ModelStore>()((set) => ({
   assumptions: {
     revenueGrowth: 0.12,   // 12%
     ebitdaMargin: 0.25,    // 25%
@@ -529,9 +529,9 @@ export function ValuationDashboard() {
   try {
     terminalValueResult = calculateTerminalValuePerpetuity(finalYearFcff, assumptions.wacc, assumptions.terminalGrowth);
     pvOfTerminalValue = terminalValueResult.value / Math.pow(1 + assumptions.wacc, 5);
-  } catch (error) {
-    return Error: WACC must be greater than Terminal Growth.;
-  }
+ } catch (error) {
+  return <div className="text-red-600 p-4">Error: WACC must be greater than Terminal Growth.</div>;
+}
 
   // 3. Enterprise Value & Equity Bridge
   const enterpriseValue = sumPvFcff + pvOfTerminalValue;
@@ -604,8 +604,7 @@ export async function generateExcelModel(assumptions: any, baseYearData: any) {
   wsDCF.columns = [
     { header: 'Metric', key: 'metric', width: 25 },
     { header: 'Base Year (FY26)', key: 'y0', width: 15 },
-    { header: 'FY27', key: 'y1', width: 15 },
-    { header: 'FY28', key: 'y2', width: 15 }
+    
   ];
 
   // Hardcode base year values in column B
@@ -1028,11 +1027,10 @@ export function generateResearchReport(companyName: string, ticker: string, impl
     startY: 140,
     head: [['Metric', 'Value', 'Methodology']],
     body: [
-      ['WACC', '10.5%', 'CAPM'],
-      ['Terminal Growth Rate', '4.0%', 'Perpetuity Growth'],
-      ['Exit Multiple', '12.0x', 'EV/EBITDA'],
-      ['Cost of Debt (Post-Tax)', '6.0%', 'Assumed 8% Pre-tax, 25% Tax'],
-    ],
+  ['WACC', `${(assumptions.wacc * 100).toFixed(1)}%`, 'CAPM'],
+  ['Terminal Growth Rate', `${(assumptions.terminalGrowth * 100).toFixed(1)}%`, 'Perpetuity Growth'],
+  ...
+],
     theme: 'grid',
     headStyles: { fillColor: [15, 23, 42] }, // matches slate-900
     styles: { fontSize: 9 },
